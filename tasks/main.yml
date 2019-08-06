@@ -1,0 +1,38 @@
+---
+# tasks file for minio-swarm
+- debug: msg="Starting role minio-swarm v0.1.0"
+
+
+# create secrets
+- include_tasks: secrets.yml
+  loop:
+    - name: minio_access_key
+      secret: "{{ minio_access_key }}"
+    - name: minio_secret_key
+      secret: "{{ minio_secret_key }}"
+
+
+# label nodes uniquely
+- name: set fallback swarm node list if necessary
+  set_fact:
+    minio_swarm_nodes: "{{ groups.all }}"
+  when: minio_swarm_nodes == []
+
+- name: set up empty node list
+  set_fact:
+    minio_nodes: []
+
+- include_tasks: labels.yml
+  loop: "{{ minio_swarm_nodes }}"
+
+
+# launch swarm
+- name: write template to temp location
+  template:
+    src: templates/docker-compose.yml.j2
+    dest: "/tmp/{{ minio_stack_name }}-docker-compose.yml"
+
+- name: run docker stack
+  shell: "docker stack deploy -c /tmp/{{ minio_stack_name }}-docker-compose.yml {{ minio_stack_name }}" 
+
+- debug: msg="WARNING! The docker stack command does not return an error if the stack doesn't launch properly."

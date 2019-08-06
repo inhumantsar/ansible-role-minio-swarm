@@ -1,0 +1,10 @@
+- name: get unique id inventory hostname
+  shell: "echo '{{ item }}' | md5sum | head -c 8"
+  register: nodeid
+
+- name: add host to list of minio nodes
+  set_fact:
+    minio_nodes: "{{ minio_nodes }} + ['minio-{{ nodeid.stdout }}']"
+
+- name: apply label to host
+  shell: "docker node update --label-add minio-{{ nodeid.stdout }}=true {{ item }}"

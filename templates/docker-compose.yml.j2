@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+{% for nodename in minio_nodes %}
+  {{ nodename }}:
+    image: {{ minio_image }}:{{ minio_image_tag }}
+    hostname: {{ nodename }}
+    volumes:
+      - {{ minio_storage_path }}:/export
+    environment:
+      MINIO_ACCESS_KEY_FILE: minio_access_key
+      MINIO_SECRET_KEY_FILE: minio_secret_key
+{% for k,v in minio_extra_env_vars.items() %}
+      k: v
+{% endfor %}
+    networks:
+        - minio
+{% for net in minio_extra_networks %}
+        - {{ net }}
+{% endfor %}
+    deploy:
+      restart_policy:
+        delay: 10s
+        max_attempts: 10
+        window: 60s
+      placement:
+        constraints:
+          - node.labels.{{ nodename }}==true
+    command: server {% for n in minio_nodes %}http://{{ n }}/export 
+{% endfor %}
+    secrets:
+      - minio_secret_key
+      - minio_access_key
+{% endfor %}
+
+networks:
+  minio:
+    driver: overlay
+{% for net in minio_extra_networks %}
+  {{ net }}:
+    external: true
+{% endfor %}
+
+secrets:
+  minio_secret_key:
+    external: true
+  minio_access_key:
+    external: true
