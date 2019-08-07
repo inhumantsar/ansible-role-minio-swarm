@@ -1,20 +1,45 @@
 # minio-swarm
 
-[![Build Status](https://travis-ci.org/inhumantsar/ansible-role-minio-swarm.svg?branch=master)](https://travis-ci.org/inhumantsar/ansible-role-minio-swarm)
-
-Deploys minio to docker swarm
-
-## Using this Cookiecutter Template
-The repo is ready to go for development after answering the cookiecutter questions. There are a few things you will want to tailor before going too far with it:
-
-* Rewrite this README
-* [`meta/main.yml`](meta/main.yml): Add Galaxy tags and tailor the supported platforms list. Ensure the copyright information is correct.
-* [`.travis.yml`](.travis.yml) and/or [`.gitlab-ci.yml`](.gitlab-ci.yml): Add any additional setup or testing tasks.
-* Use [`bumpversion`](https://github.com/peritus/bumpversion) to tag releases and keep your role tidily versioned.
+Deploys Minio to Docker Swarm
 
 ## Requirements
 
-What does the user need to do ahead of time to ensure this role will work for them?
+You will need:
+
+* A working Docker Swarm cluster
+* An even number of nodes (4 ideally)
+* A reverse proxy is optional but highly recommended. (eg: [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy))
+
+Note that this *will only* configure Minio, it will not set up S3FS or the S3FS Docker Volume Driver. Those are up to you.
+
+``` yaml
+# these are SAMPLE values and should be changed for production usage.
+minio_access_key: AKIAIOSFODNN7EXAMPLE
+minio_secret_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# if using a custom backend for docker secrets, set it here.
+minio_secret_driver: ""
+
+# this must be set to a list of docker swarm node names
+# if left empty, groups.all will be used instead.
+minio_swarm_nodes: []
+
+# local storage on nodes themselves is the only supported method currently.
+minio_storage_path: /opt/minio
+
+# docker image info
+minio_image: minio/minio
+minio_image_tag: latest
+
+# in case you need to add env vars to the container
+minio_extra_env_vars: {}
+
+# use this if you need to connect minio to other clusters in the swarm, eg: for a reverse proxy
+minio_extra_networks: []
+
+# if you're planning to run multiple stacks, be sure to change this
+minio_stack_name: minio
+```
 
 ## Supported Platforms
 
@@ -32,20 +57,6 @@ What does the user need to do ahead of time to ensure this role will work for th
     - yakkety
     - xenial
 * Alpine
-
-## Variables & Defaults
-
-Use this space to describe the must-change and should-change variables.
-
-See [`defaults/main.yml`](defaults/main.yml) for more information.
-
-## Usage
-
-Provide an example of the role in action.
-
-## Dependencies
-
-List any other roles which this one depends on and briefly explain why.
 
 ## License
 [BSD](LICENSE)
