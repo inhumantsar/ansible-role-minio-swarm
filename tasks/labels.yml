@@ -4,7 +4,7 @@
 
 - name: add host to list of minio nodes
   set_fact:
-    minio_nodes: "{{ minio_nodes }} + ['minio-{{ nodeid.stdout }}']"
+    minio_nodes: "{{ minio_nodes }} + ['{{ nodeid.stdout }}']"
 
 - name: apply label to host
   shell: "docker node update --label-add minio-{{ nodeid.stdout }}=true {{ item }}"

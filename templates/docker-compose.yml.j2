@@ -1,17 +1,17 @@
-version: '3.1'
+version: '3.2'
 
 services:
 {% for nodename in minio_nodes %}
   {{ nodename }}:
     image: {{ minio_image }}:{{ minio_image_tag }}
-    hostname: {{ nodename }}
+    # hostname: {{ nodename }}
     volumes:
       - {{ minio_storage_path }}:/export
     environment:
       MINIO_ACCESS_KEY_FILE: minio_access_key
       MINIO_SECRET_KEY_FILE: minio_secret_key
 {% for k,v in minio_extra_env_vars.items() %}
-      k: v
+      {{ k }}: {{ v }}
 {% endfor %}
     networks:
         - minio
@@ -25,9 +25,11 @@ services:
         window: 60s
       placement:
         constraints:
-          - node.labels.{{ nodename }}==true
-    command: server {% for n in minio_nodes %}http://{{ n }}/export 
-{% endfor %}
+          - node.labels.minio-{{ nodename }}==true
+    # the "tasks." if below is a workaround for dns issues: https://github.com/minio/minio/issues/6240
+    # relying on hostname doesn't work in our swarm for ??reasons??
+    command: server {% for n in minio_nodes %}http://{% if n == nodename %}tasks.{% endif %}{{ n }}/export {% endfor %}
+
     secrets:
       - minio_secret_key
       - minio_access_key
@@ -36,6 +38,7 @@ services:
 networks:
   minio:
     driver: overlay
+    attachable: true
 {% for net in minio_extra_networks %}
   {{ net }}:
     external: true
