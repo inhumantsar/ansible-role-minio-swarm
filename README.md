@@ -58,6 +58,23 @@ minio_stack_name: minio
     - xenial
 * Alpine
 
+## Usage
+
+``` bash
+$ ansible-galaxy install inhumantsar.minio_swarm
+$ echo """
+minio_access_key: somelongkey
+minio_secret_key: someotherlongkey
+minio_swarm_nodes: [swarm_manager, worker1, worker2, worker3]
+""" > vars.yml
+$ echo """
+- hosts: all
+  roles: 
+    - inhumantsar.minio_swarm
+""" > playbook.yml
+$ ansible-playbook -i swarm_manager, -e @vars.yml playbook.yml
+```
+
 ## License
 [BSD](LICENSE)
 
